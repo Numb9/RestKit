@@ -550,7 +550,7 @@ RKRequestMethod RKRequestMethodTypeFromName(NSString *methodName) {
 - (RKResponse*)sendSynchronously {
     NSAssert(NO == _isLoading || NO == _isLoaded, @"Cannot send a request that is loading or loaded without resetting it first.");
 	NSHTTPURLResponse* URLResponse = nil;
-	NSError* error;
+	NSError* error = nil;
 	NSData* payload = nil;
 	RKResponse* response = nil;
     _sentSynchronously = YES;
@@ -577,13 +577,11 @@ RKRequestMethod RKRequestMethodTypeFromName(NSString *methodName) {
         _URLRequest.timeoutInterval = _timeoutInterval;
         payload = [NSURLConnection sendSynchronousRequest:_URLRequest returningResponse:&URLResponse error:&error];
         
-        if (payload != nil) error = nil;
-
         response = [[[RKResponse alloc] initWithSynchronousRequest:self URLResponse:URLResponse body:payload error:error] autorelease];
 
         if (error.code == NSURLErrorTimedOut) {
             [self timeout];
-        } else if (payload == nil) {
+        } else if (error != nil ) { 
             [self didFailLoadWithError:error];
         } else {
             [self didFinishLoad:response];
